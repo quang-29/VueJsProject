@@ -3,6 +3,7 @@ import { reactive, ref } from 'vue'
 import axios from 'axios'
 import Swal from 'sweetalert2'
 import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
 
 
 const user = reactive({
@@ -44,11 +45,20 @@ const handleSignIn = async () => {
 
 
       if(user_info.email == 'admin@gmail.com'){
+        ElMessage({
+          message: 'Bạn đã đăng nhập thành công.',
+          type: 'success',
+        })
         router.push('administrator')
       } else {
-        router.push({ name: 'home' }).then(() => {
-        window.location.reload()
-      })
+      //   router.push({ name: 'home' }).then(() => {
+      //   window.location.reload()
+      // })
+      ElMessage({
+          message: 'Bạn đã đăng nhập thành công.',
+          type: 'success',
+        })
+        router.push({ name: 'home' })
       }
       
       

@@ -77,7 +77,7 @@ const decreaseQty = () => {
   </div>
 </template>
 
-<style>
+<style setup>
 .book-detail {
   display: flex;
   gap: 40px;

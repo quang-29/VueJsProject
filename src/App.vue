@@ -8,17 +8,15 @@ import NavBar from './components/NavBar.vue';
 
 <template>
   <div class="nav">
-    <!-- <Header></Header>
-    <NavBar
-      :listcategories="categories"
-      :isLoading="isLoading"
-      :isError="hasError"
-      /> -->
-    
     <router-view />
   </div>
 </template>
 
 
 <style >
+body, html {
+  height: auto;
+  overflow-y: auto;
+}
+
 </style>

@@ -5,6 +5,7 @@ import { ShoppingCart, User, Search, ArrowDown } from 'lucide-vue-next'
 import { watch } from 'vue';
 import {ref, onMounted} from 'vue'
 import { ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus'
 
 const router = useRouter();
 
@@ -48,6 +49,10 @@ const handleUserMenu = (command) => {
       }).then(() => {
         localStorage.removeItem('user-info')
         localStorage.removeItem('token')
+        ElMessage({
+          message: 'Bạn đã đăng xuất thành công.',
+          type: 'success',
+        })
         router.push('/signIn')
       })
       break

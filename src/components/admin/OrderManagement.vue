@@ -1,18 +1,20 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, computed } from 'vue'
 import { useFetchData } from '@/composable/useFetchData';
 import { RouterLink } from 'vue-router';
 import { formatDateTime } from '@/util/formatDate';
+import { formatPrice } from '@/util/formatPrice';
 const orders = ref([])
 const showDialog = ref(false)
 const selectedOrder = ref({})
+const searchKeyword = ref('')
 
 const { loading, data, error, fetchData } = useFetchData()
 
 onMounted(async () => {
-    await fetchData('http://localhost:8080/api/v1/order/all')
-    orders.value = data.value
-    console.log(orders)
+  await fetchData('http://localhost:8080/api/v1/order/all')
+  orders.value = data.value
+  console.log(orders)
 })
 
 const viewOrder = (orderId) => {
@@ -20,9 +22,14 @@ const viewOrder = (orderId) => {
   const order = orders.value.find(item => item.id === orderId);
   console.log(order)
   selectedOrder.value = order;
-
-
 }
+const filteredOrders = computed(() => {
+  if (!searchKeyword.value) return orders.value;
+  return orders.value.filter(order =>
+    order.id.toString().includes(searchKeyword.value.toLowerCase())
+  );
+});
+
 const statusType = (status) => {
   switch (status) {
     case 'PENDING':
@@ -39,91 +46,103 @@ const statusType = (status) => {
 </script>
 
 <template>
-    <el-table :data="orders">
-        <el-table-column prop="id" label="Id" />
-        <el-table-column prop="address" label="Address" />
-        <el-table-column prop="createdAt" label="Created At" width="100" />
-        <el-table-column prop="status" label="Satus" width="100" />
-        <el-table-column prop="totalPrice" label="Total" width="100" />
-        <el-table-column label="Hành động" width="160">
-            <template #default="{ row }">
-                <el-button type="primary" size="small" @click="viewOrder(row.id)">
-                    Xem chi tiết
-                </el-button>
-            </template>
-        </el-table-column>
-    </el-table>
+  <div class="order-management">
+      <el-input v-model="searchKeyword" placeholder="Tìm theo mã đơn hàng..." clearable style="height: 40px;"
+        class="search-input" />
+  </div>
+  <div>
+    <div v-if="orders.length === 0" class="no_order">
+      Không có đơn hàng nào
+    </div>
+    <div v-else class="order-list">
+      <p>Tổng số đơn hàng: {{ orders.length }}</p>
+    </div>
+  </div>
+  <el-table :data="filteredOrders">
+    <el-table-column prop="id" label="Id" width="100" />
+    <el-table-column prop="address" label="Address" />
+    <el-table-column prop="createdAt" label="Created At" width="200" />
+    <el-table-column prop="status" label="Status" width="200" />
+    <el-table-column prop="totalPrice" label="Total" width="200" />
+    <el-table-column label="Hành động" width="160">
+      <template #default="{ row }">
+        <el-button type="primary" size="small" @click="viewOrder(row.id)">
+          Xem chi tiết
+        </el-button>
+      </template>
+    </el-table-column>
+  </el-table>
 
-    <el-dialog v-model="showDialog" title="Chi tiết đơn hàng" width="90%" :close-on-click-modal="false"
-      :destroy-on-close="true" :modal="true" class="custom-dialog">
-      <div v-if="selectedOrder" class="sub_dialog">
-        <div style="margin-bottom: 20px;">
-          <p><strong>Mã đơn:</strong> {{ selectedOrder.id }}</p>
-          <p><strong>Ngày đặt:</strong> {{ formatDateTime(selectedOrder.createdAt) }}</p>
-          <p><strong>Địa chỉ:</strong> {{ selectedOrder.address }}</p>
-          <p><strong>Trạng thái:</strong>
-            <el-tag :type="statusType(selectedOrder.status)">
-              {{ selectedOrder.status }}
-            </el-tag>
-          </p>
-        </div>
-
-        <div class="card-container">
-          <RouterLink v-for="book in selectedOrder.orderItemDTOList" :key="book.bookId" :to="`/book/${book.bookId}`"
-            class="book-card">
-            <img :src="book.bookImage" alt="Ảnh bìa" class="book-image" />
-            <div class="book-details">
-              <h4>{{ book.bookTitle }}</h4>
-              <p><strong>Tác giả:</strong> {{ book.bookAuthor }}</p>
-              <p><strong>Giá:</strong> {{ book.bookPrice.toLocaleString('vi-VN') }} đ</p>
-              <p><strong>Số lượng:</strong> {{ book.quantity }}</p>
-            </div>
-          </RouterLink>
-
-        </div>
-
-        <div class="order_action">
-          <p class="total_money"><strong>Tổng tiền:</strong> {{ selectedOrder.totalPrice.toLocaleString('vi-VN') }} đ</p>
-          <button :disabled="selectedOrder.status == 'PENDING'? false: true" class="btn_cancelOrder">Hủy đơn hàng</button>
-          <button :disabled="selectedOrder.status == 'PENDING'? false: true" class="btn_cancelOrder">Xác nhận đơn hàng</button>
-        </div>
-        
+  <el-dialog v-model="showDialog" title="Chi tiết đơn hàng" width="90%" :close-on-click-modal="false"
+    :destroy-on-close="true" :modal="true" class="custom-dialog">
+    <div v-if="selectedOrder" class="sub_dialog">
+      <div style="margin-bottom: 20px;">
+        <p><strong>Mã đơn:</strong> {{ selectedOrder.id }}</p>
+        <p><strong>Ngày đặt:</strong> {{ formatDateTime(selectedOrder.createdAt) }}</p>
+        <p><strong>Địa chỉ:</strong> {{ selectedOrder.address }}</p>
+        <p><strong>Trạng thái:</strong>
+          <el-tag :type="statusType(selectedOrder.status)">
+            {{ selectedOrder.status }}
+          </el-tag>
+        </p>
       </div>
 
+      <div class="card-container">
+        <RouterLink v-for="book in selectedOrder.orderItemDTOList" :key="book.bookId" :to="`/book/${book.bookId}`"
+          class="book-card">
+          <img :src="book.bookImage" alt="Ảnh bìa" class="book-image" />
+          <div class="book-details">
+            <h4>{{ book.bookTitle }}</h4>
+            <p><strong>Tác giả:</strong> {{ book.bookAuthor }}</p>
+            <p><strong>Giá:</strong> {{ book.bookPrice.toLocaleString('vi-VN') }} đ</p>
+            <p><strong>Số lượng:</strong> {{ book.quantity }}</p>
+          </div>
+        </RouterLink>
 
-
-      <template #footer>
-        <el-button @click="showDialog = false">Đóng</el-button>
-      </template>
-    </el-dialog>
+      </div>
+      <div class="order_action">
+        <p class="total_money"><strong>Tổng tiền:</strong> {{ selectedOrder.totalPrice.toLocaleString('vi-VN') }} đ</p>
+        <button :disabled="selectedOrder.status == 'PENDING' ? false : true" class="btn_cancelOrder">Hủy đơn hàng</button>
+        <button :disabled="selectedOrder.status == 'PENDING' ? false : true" class="btn_cancelOrder">Xác nhận đơn
+          hàng</button>
+      </div>
+    </div>
+    <template #footer>
+      <el-button @click="showDialog = false">Đóng</el-button>
+    </template>
+  </el-dialog>
 </template>
 
-<style setup>
+<style scoped>
 el-table-column {
   height: 50px;
 }
-.order_action{
+
+.order_action {
   display: flex;
   align-items: center;
   margin-top: 20px;
   column-gap: 20px;
 }
-.btn_cancelOrder{
+
+.btn_cancelOrder {
   padding: 12px 24px;
   border: none;
   border-radius: 10px;
   cursor: pointer;
   background-color: white;
   color: rgba(211, 19, 42);
-  border: 1px solid rgba(211,19,42);
+  border: 1px solid rgba(211, 19, 42);
   font-size: 1.25rem;
   transition: background-color 0.3s ease, color 0.3s ease;
 
 }
-.btn_cancelOrder:hover{
+
+.btn_cancelOrder:hover {
   background-color: #bd0909;
   color: white;
 }
+
 .card-container {
   display: flex;
   flex-wrap: wrap;
@@ -146,7 +165,7 @@ el-table-column {
 }
 
 .book-card:hover {
- transform: translateY(-5px);
+  transform: translateY(-5px);
 }
 
 .book-image {
@@ -174,9 +193,30 @@ el-table-column {
   font-size: 1.25rem;
   color: #bd0909;
 }
+
 .no_order {
   color: black;
   text-align: center;
   font-size: 1.25rem;
+}
+
+header,
+footer {
+  background-color: white;
+}
+
+.order-management {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+.order-list {
+  font-size: 1rem;
+}
+
+.search-order-input {
+  width: 100%;
 }
 </style>

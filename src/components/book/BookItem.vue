@@ -20,16 +20,16 @@ const { addToCart } = useAddToCart();
             <h3 class="book-title"> {{ book.title }}</h3>
             <p class="book-author">{{ book.authorName }}</p>
             <div class="stock-and-remain">
-                <div class="price-block">
-                    <span class="original-price">{{ formatPrice(book.price) }}</span>
-                    <span class="sale-price">{{ formatPrice(book.price * 1.3) }}</span>
+                <div class="price">
+                    <span class="original">{{ formatPrice(book.price) }}đ </span>
+                    <span class="sale">{{ formatPrice(book.price * 1.3) }}đ</span>
                     <span class="discount">-30%</span>
                 </div>
-                <div class="book-sold">
-                    <span>Đã bán: {{ book.sold }}</span>
-                </div>
             </div>
-            <div class="rating">
+            <div class="sold">
+                    <span>Đã bán: {{ book.sold }}</span>
+            </div>
+             <div class="rating">
                 <el-icon>
                     <StarFilled />
                 </el-icon>
@@ -108,24 +108,30 @@ const { addToCart } = useAddToCart();
     display: block;
 
 }
-.price-block {
+.stock-and-remain {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+.price {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 1rem;
+  font-size: 1.5rem;
+  line-height: 1;
+  flex-wrap: nowrap;
+  margin-top: 10px;
 }
 
-.original-price {
+.original {
   color: #d63532;
-  font-size: 1rem;
-
-  
 }
-.sale-price {
+.sale {
   font-weight: bold;
   text-decoration: line-through;
   color: #888;
-  font-size: 1rem;
 
 }
 
@@ -136,15 +142,9 @@ const { addToCart } = useAddToCart();
   padding: 4px 8px;
   border-radius: 4px;
 }
-.stock-and-remain {
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-}
-.book-sold {
+.sold {
     font-size: 1rem;
+    white-space: nowrap;
 }
 .btn-add-to-cart {
     width: 35px;
